@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLM Web Application</title>
+    <title>MatrixCoins Web Application</title>
     <style>
         :root {
             --primary: #4f46e5;
@@ -76,6 +76,24 @@
 
         input:focus, select:focus {
             border-color: var(--primary);
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 13px;
+            cursor: pointer;
+            width: auto;
+            padding: 0;
         }
 
         button {
@@ -208,7 +226,10 @@
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" id="signup-password" placeholder="Create password">
+                    <div class="password-container">
+                        <input type="password" id="signup-password" placeholder="Create password">
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('signup-password', this)">Show</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Refer Code (Optional)</label>
@@ -227,7 +248,10 @@
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" id="login-password" placeholder="Enter password">
+                    <div class="password-container">
+                        <input type="password" id="login-password" placeholder="Enter password">
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('login-password', this)">Show</button>
+                    </div>
                 </div>
                 <button onclick="handleLogin()">Login</button>
                 <button class="secondary-btn" onclick="toggleAuth(true)">Don't have an account? Register</button>
@@ -344,6 +368,25 @@
         </div>
     </div>
 
+    <!-- Firebase SDK Setup -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyA5LxqMPqhnCQ4pD71AfNzulLSVacf1G7g",
+          authDomain: "mathmarge.firebaseapp.com",
+          projectId: "mathmarge",
+          storageBucket: "mathmarge.firebasestorage.app",
+          messagingSenderId: "313180377672",
+          appId: "1:313180377672:web:930c0b0ec175033153fe7d",
+          measurementId: "G-VN9F03PJ1T"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+    </script>
+
     <script>
         // --- DATABASE & STATE MANAGEMENT (LocalStorage Mock) ---
         let users = JSON.parse(localStorage.getItem('mlm_users')) || [];
@@ -351,6 +394,35 @@
         let transactions = JSON.parse(localStorage.getItem('mlm_transactions')) || [];
 
         const packages = [50, 100, 200, 500, 1000];
+
+        // --- PASSWORD SHOW/HIDE UTILITY ---
+        function togglePasswordVisibility(inputId, btn) {
+            const inputField = document.getElementById(inputId);
+            if (inputField.type === "password") {
+                inputField.type = "text";
+                btn.innerText = "Hide";
+            } else {
+                inputField.type = "password";
+                btn.innerText = "Show";
+            }
+        }
+
+        // --- AUTO-FILL REFERRAL CODE FROM URL IF ANY ---
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const refParam = urlParams.get('ref');
+            if (refParam) {
+                const referInput = document.getElementById('signup-refer');
+                if (referInput) referInput.value = refParam;
+            }
+
+            // Check Persistent Login Session
+            if (currentUser) {
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
+                loadDashboard();
+            }
+        };
 
         // --- AUTH LOGIC ---
         function toggleAuth(isSignup) {
@@ -397,6 +469,26 @@
                 team: { l1: 0, total: 0 }
             };
 
+            // If referred by someone, update their team count
+            if (referCode) {
+                let upline = users.find(u => u.referCode === referCode);
+                if (upline) {
+                    upline.team.l1 += 1;
+                    upline.team.total += 1;
+                    // Update higher levels total team count recursively
+                    let currentUplineCode = upline.referredBy;
+                    while(currentUplineCode) {
+                        let higherUpline = users.find(u => u.referCode === currentUplineCode);
+                        if(higherUpline) {
+                            higherUpline.team.total += 1;
+                            currentUplineCode = higherUpline.referredBy;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+
             users.push(newUser);
             localStorage.setItem('mlm_users', JSON.stringify(users));
             alert('Registration Successful! Please login.');
@@ -420,6 +512,8 @@
 
             currentUser = user;
             localStorage.setItem('mlm_current_user', JSON.stringify(currentUser));
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('hidden');
             loadDashboard();
         }
 
@@ -429,13 +523,6 @@
             document.getElementById('auth-section').classList.remove('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
             toggleAuth(true);
-        }
-
-        // --- DASHBOARD LOGIC ---
-        if (currentUser) {
-            document.getElementById('auth-section').classList.add('hidden');
-            document.getElementById('dashboard-section').classList.remove('hidden');
-            loadDashboard();
         }
 
         function loadDashboard() {
@@ -453,8 +540,8 @@
                 badgeContainer.innerHTML = `<span class="badge badge-green">Active (${currentUser.activePackage} Pkg)</span>`;
             }
 
-            // Referral Link
-            document.getElementById('ref-link').value = `https://app.example.com/register?ref=${currentUser.referCode}`;
+            // Referral Link with specific custom domain
+            document.getElementById('ref-link').value = `https://mathmarge.github.io/MatrixCoins/?ref=${currentUser.referCode}`;
 
             // Team Stats
             document.getElementById('stat-l1').innerText = currentUser.team.l1;
