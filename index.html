@@ -412,10 +412,10 @@
         </div>
     </div>
 
-    <!-- Firebase SDK Setup -->
+    <!-- Firebase SDK Setup & Matrix Isolated Nodes Integration -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+        import { getDatabase, ref, set, get, child, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyA5LxqMPqhnCQ4pD71AfNzulLSVacf1G7g",
@@ -428,16 +428,71 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
+        const db = getDatabase(app);
+
+        // Expose Firebase functions globally for app logic
+        window.matrixDB = { db, ref, set, get, child, onValue };
+        window.initMatrixFirebaseSync();
     </script>
 
     <script>
-        // --- DATABASE & STATE MANAGEMENT (LocalStorage Mock) ---
+        // --- DATABASE & STATE MANAGEMENT (Matrix Isolated Nodes + LocalStorage Sync) ---
         let users = JSON.parse(localStorage.getItem('mlm_users')) || [];
         let currentUser = JSON.parse(localStorage.getItem('mlm_current_user')) || null;
         let transactions = JSON.parse(localStorage.getItem('mlm_transactions')) || [];
 
         const packages = [50, 100, 200, 500, 1000];
+
+        // Firebase Sync Initialization for Matrix
+        window.initMatrixFirebaseSync = function() {
+            const { db, ref, onValue } = window.matrixDB;
+
+            // Sync matrix_users separately to avoid mixing with Math Merge
+            onValue(ref(db, 'matrix_users'), (snapshot) => {
+                if (snapshot.exists()) {
+                    users = snapshot.val() || [];
+                    localStorage.setItem('mlm_users', JSON.stringify(users));
+                    if (currentUser) {
+                        const updatedSelf = users.find(u => u.mobile === currentUser.mobile);
+                        if (updatedSelf) {
+                            currentUser = updatedSelf;
+                            localStorage.setItem('mlm_current_user', JSON.stringify(currentUser));
+                            loadDashboard();
+                        }
+                    }
+                }
+            });
+
+            // Sync matrix_transactions separately
+            onValue(ref(db, 'matrix_transactions'), (snapshot) => {
+                if (snapshot.exists()) {
+                    transactions = snapshot.val() || [];
+                    localStorage.setItem('mlm_transactions', JSON.stringify(transactions));
+                    if (currentUser) renderHistory();
+                }
+            });
+
+            // Sync admin configuration nodes
+            onValue(ref(db, 'matrix_admin_qr'), (snapshot) => {
+                if (snapshot.exists()) {
+                    localStorage.setItem('matrix_admin_qr', snapshot.val());
+                }
+            });
+
+            onValue(ref(db, 'matrix_admin_upi'), (snapshot) => {
+                if (snapshot.exists()) {
+                    localStorage.setItem('matrix_admin_upi', snapshot.val());
+                }
+            });
+        };
+
+        function syncToFirebase() {
+            if (window.matrixDB) {
+                const { db, ref, set } = window.matrixDB;
+                set(ref(db, 'matrix_users'), users);
+                set(ref(db, 'matrix_transactions'), transactions);
+            }
+        }
 
         // --- PASSWORD SHOW/HIDE UTILITY ---
         function togglePasswordVisibility(inputId, btn) {
@@ -453,7 +508,6 @@
 
         // --- USER PANEL QR CODE LOADER FUNCTION ---
         function loadUserQrCode() {
-            // Admin panel uses 'matrix_admin_qr' & 'matrix_admin_upi' keys
             const savedQr = localStorage.getItem('matrix_admin_qr') || localStorage.getItem('admin_qr_url');
             const savedUpi = localStorage.getItem('matrix_admin_upi') || localStorage.getItem('admin_upi_id');
             
@@ -530,14 +584,13 @@
                     alert('Invalid Refer Code! Please check or leave blank.');
                     return;
                 }
-                verifiedReferCode = matchedUpline.referCode; // store actual correct case code
+                verifiedReferCode = matchedUpline.referCode;
             }
 
-            // Auto-Generated Sequential Referral Code (First 3 letters lowercase + 100, 101, 102...)
+            // Auto-Generated Sequential Referral Code
             const prefix = name.substring(0, 3).toLowerCase();
             let seqNumber = 100 + users.length;
             let userReferCode = prefix + seqNumber;
-            // Ensure uniqueness just in case
             while(users.some(u => u.referCode.toLowerCase() === userReferCode.toLowerCase())) {
                 seqNumber++;
                 userReferCode = prefix + seqNumber;
@@ -552,19 +605,17 @@
                 referCode: userReferCode,
                 referredBy: verifiedReferCode,
                 wallet: 0,
-                activePackage: 0, // 0 means inactive
+                activePackage: 0,
                 earnings: 0,
                 team: { l1: 0, total: 0 },
                 regDate: registrationDate
             };
 
-            // If referred by someone, update their team count
             if (verifiedReferCode) {
                 let upline = users.find(u => u.referCode === verifiedReferCode);
                 if (upline) {
                     upline.team.l1 += 1;
                     upline.team.total += 1;
-                    // Update higher levels total team count recursively
                     let currentUplineCode = upline.referredBy;
                     while(currentUplineCode) {
                         let higherUpline = users.find(u => u.referCode === currentUplineCode);
@@ -580,6 +631,7 @@
 
             users.push(newUser);
             localStorage.setItem('mlm_users', JSON.stringify(users));
+            syncToFirebase();
             alert('Registration Successful! Your refer code is ' + userReferCode + '. Please login.');
             toggleAuth(false);
         }
@@ -615,13 +667,11 @@
         }
 
         function loadDashboard() {
-            // Refresh current user instance from local storage array
             currentUser = users.find(u => u.mobile === currentUser.mobile);
 
             document.getElementById('user-greeting').innerText = `Welcome, ${currentUser.name}`;
             document.getElementById('wallet-balance').innerText = `${currentUser.wallet} Coins`;
             
-            // ID Status Badge
             const badgeContainer = document.getElementById('id-status-badge');
             if (currentUser.activePackage === 0) {
                 badgeContainer.innerHTML = `<span class="badge badge-red">Inactive</span>`;
@@ -629,10 +679,8 @@
                 badgeContainer.innerHTML = `<span class="badge badge-green">Active (${currentUser.activePackage} Pkg)</span>`;
             }
 
-            // Referral Link with specific custom domain
             document.getElementById('ref-link').value = `https://mathmarge.github.io/MatrixCoins/?ref=${currentUser.referCode}`;
 
-            // Team Stats
             document.getElementById('stat-l1').innerText = currentUser.team.l1;
             document.getElementById('stat-team').innerText = currentUser.team.total;
             document.getElementById('stat-earnings').innerText = `${currentUser.earnings} Coins`;
@@ -643,7 +691,6 @@
             renderHistory();
         }
 
-        // --- RENDER UPLINE DETAILS ---
         function renderUplineDetails() {
             const container = document.getElementById('upline-details-container');
             if (!currentUser.referredBy) {
@@ -679,11 +726,9 @@
             `;
         }
 
-        // --- RENDER 4-LEVEL DOWNLINE TEAM TREE VIEW ---
         function renderDownlineTree() {
             const container = document.getElementById('downline-tree-container');
             
-            // Gather Level 1 users (direct referrals)
             const level1Users = users.filter(u => u.referredBy === currentUser.referCode);
             if (level1Users.length === 0) {
                 container.innerHTML = `<p style="text-align: center; color: var(--text-light); font-size: 13px;">No downline team members yet.</p>`;
@@ -691,11 +736,8 @@
             }
 
             let htmlContent = '';
-            
-            // Level 1
             htmlContent += renderLevelBox(1, level1Users);
 
-            // Level 2
             let level2Users = [];
             level1Users.forEach(l1 => {
                 const sub = users.filter(u => u.referredBy === l1.referCode);
@@ -705,7 +747,6 @@
                 htmlContent += renderLevelBox(2, level2Users);
             }
 
-            // Level 3
             let level3Users = [];
             level2Users.forEach(l2 => {
                 const sub = users.filter(u => u.referredBy === l2.referCode);
@@ -715,7 +756,6 @@
                 htmlContent += renderLevelBox(3, level3Users);
             }
 
-            // Level 4
             let level4Users = [];
             level3Users.forEach(l3 => {
                 const sub = users.filter(u => u.referredBy === l3.referCode);
@@ -764,15 +804,13 @@
             alert('Referral link copied to clipboard!');
         }
 
-        // --- PACKAGE ACTIVATION & HIDING RULE ---
         function renderPackages() {
             const container = document.getElementById('packages-container');
             container.innerHTML = '';
 
             packages.forEach(pkg => {
-                // Package Hiding Rule: If user has already taken this package or higher, hide/disable it
                 if (currentUser.activePackage >= pkg) {
-                    return; // Hide package
+                    return;
                 }
 
                 const div = document.createElement('div');
@@ -800,10 +838,8 @@
 
             if (confirm(`Confirm activation of package worth ${pkgAmount} coins?`)) {
                 currentUser.wallet -= pkgAmount;
-                const oldPackage = currentUser.activePackage;
                 currentUser.activePackage = pkgAmount;
 
-                // Distribute 4-Level Commission
                 distributeCommission(currentUser, pkgAmount);
 
                 updateUserData();
@@ -813,9 +849,8 @@
             }
         }
 
-        // --- 4-LEVEL MULTI-LEVEL COMMISSION LOGIC ---
         function distributeCommission(downlineUser, packageAmount) {
-            const percentages = [0.40, 0.20, 0.10, 0.05]; // Level 1 to 4
+            const percentages = [0.40, 0.20, 0.10, 0.05];
             let currentUplineCode = downlineUser.referredBy;
 
             for (let level = 0; level < 4; level++) {
@@ -824,16 +859,13 @@
                 let uplineUser = users.find(u => u.referCode === currentUplineCode);
                 if (!uplineUser) break;
 
-                // Rule: Upline's ID must be active
                 if (uplineUser.activePackage > 0) {
-                    // Rule: Commission based on minimum (chhoti) value between Upline active package and Downline package
                     let matchingBase = Math.min(uplineUser.activePackage, packageAmount);
                     let commission = matchingBase * percentages[level];
 
                     uplineUser.wallet += commission;
                     uplineUser.earnings += commission;
 
-                    // Log commission transaction for upline
                     addCustomTransaction(uplineUser.mobile, `Level ${level + 1} Commission: +${commission} Coins`, 'Successful');
                 }
 
@@ -841,7 +873,6 @@
             }
         }
 
-        // --- MANUAL DEPOSIT SYSTEM (ADD COINS) ---
         function proceedToPayment() {
             const amount = document.getElementById('deposit-amount').value;
             if (!amount || amount <= 0) {
@@ -849,9 +880,7 @@
                 return;
             }
 
-            // Load Admin Dynamic QR & UPI ID from localStorage using loadUserQrCode logic
             loadUserQrCode();
-
             document.getElementById('payment-section').classList.remove('hidden');
         }
 
@@ -867,14 +896,12 @@
             const file = fileInput.files[0];
             const reader = new FileReader();
 
-            // Convert image to Base64 so Admin panel can render it directly
             reader.onload = function(e) {
                 const base64Image = e.target.result;
 
                 addTransactionWithScreenshot(`Manual Deposit Request: ${amount} Coins`, 'Pending (Verification)', base64Image);
                 alert('Deposit request submitted successfully! Pending admin approval.');
                 
-                // Reset fields
                 document.getElementById('deposit-amount').value = '';
                 document.getElementById('payment-screenshot').value = '';
                 document.getElementById('payment-section').classList.add('hidden');
@@ -884,7 +911,6 @@
             reader.readAsDataURL(file);
         }
 
-        // --- WITHDRAW SYSTEM ---
         function submitWithdrawal() {
             const coins = parseFloat(document.getElementById('withdraw-coins').value);
             const method = document.getElementById('withdraw-method').value;
@@ -903,20 +929,17 @@
                 return;
             }
 
-            // Deduct coins temporarily pending approval
             currentUser.wallet -= coins;
             updateUserData();
 
             addTransaction(`Withdrawal Request: ${coins} Coins via ${method} (${destination})`, 'Pending');
             alert('Withdrawal request submitted successfully!');
 
-            // Reset inputs
             document.getElementById('withdraw-coins').value = '';
             document.getElementById('withdraw-destination').value = '';
             loadDashboard();
         }
 
-        // --- UTILS & STORAGE ---
         function addTransaction(details, status) {
             const tx = {
                 id: Date.now(),
@@ -928,6 +951,7 @@
             };
             transactions.push(tx);
             localStorage.setItem('mlm_transactions', JSON.stringify(transactions));
+            syncToFirebase();
         }
 
         function addTransactionWithScreenshot(details, status, screenshot) {
@@ -941,6 +965,7 @@
             };
             transactions.push(tx);
             localStorage.setItem('mlm_transactions', JSON.stringify(transactions));
+            syncToFirebase();
         }
 
         function addCustomTransaction(userMobile, details, status) {
@@ -954,6 +979,7 @@
             };
             transactions.push(tx);
             localStorage.setItem('mlm_transactions', JSON.stringify(transactions));
+            syncToFirebase();
         }
 
         function updateUserData() {
@@ -962,11 +988,13 @@
                 users[index] = currentUser;
                 localStorage.setItem('mlm_users', JSON.stringify(users));
                 localStorage.setItem('mlm_current_user', JSON.stringify(currentUser));
+                syncToFirebase();
             }
         }
 
         function renderHistory() {
             const container = document.getElementById('history-container');
+            if(!currentUser) return;
             const userTxs = transactions.filter(t => t.mobile === currentUser.mobile);
 
             if (userTxs.length === 0) {
@@ -975,7 +1003,7 @@
             }
 
             container.innerHTML = '';
-            userTxs.reverse().forEach(tx => {
+            userTxs.slice().reverse().forEach(tx => {
                 const div = document.createElement('div');
                 div.className = 'history-item';
                 div.innerHTML = `
