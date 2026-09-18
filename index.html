@@ -205,6 +205,7 @@
             color: var(--text-light);
             border-radius: 8px;
             border: 2px dashed #9ca3af;
+            object-fit: contain;
         }
 
         .team-level-section {
@@ -363,11 +364,13 @@
                 <button onclick="proceedToPayment()" style="background: var(--success);">Proceed to Pay</button>
 
                 <!-- Payment & QR Section (Hidden initially) -->
-                <div id="payment-section" class="hidden" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+                <div id="payment-section" class="hidden" style="margin-top: 15px; border-top: 1px solid var(--border); paddingTop: 15px;">
                     <div class="alert-box">Scan QR code, pay via any UPI app, and upload screenshot below.</div>
                     <div class="qr-container">
-                        <div class="qr-placeholder">Admin UPI QR Code<br>(Dynamic / Admin Managed)</div>
-                        <p style="font-size: 13px; font-weight: bold; color: var(--primary);">UPI ID: admin@upi</p>
+                        <!-- Dynamic QR Render Update -->
+                        <img id="admin-qr-img" src="" alt="Admin UPI QR Code" class="qr-placeholder hidden">
+                        <div id="admin-qr-placeholder" class="qr-placeholder">Admin UPI QR Code<br>(Dynamic / Admin Managed)</div>
+                        <p style="font-size: 13px; font-weight: bold; color: var(--primary);" id="admin-upi-text">UPI ID: admin@upi</p>
                     </div>
                     <div class="form-group">
                         <label>Upload Payment Screenshot</label>
@@ -445,6 +448,30 @@
             } else {
                 inputField.type = "password";
                 btn.innerText = "Show";
+            }
+        }
+
+        // --- USER PANEL QR CODE LOADER FUNCTION ---
+        function loadUserQrCode() {
+            // Admin panel uses 'matrix_admin_qr' & 'matrix_admin_upi' keys
+            const savedQr = localStorage.getItem('matrix_admin_qr') || localStorage.getItem('admin_qr_url');
+            const savedUpi = localStorage.getItem('matrix_admin_upi') || localStorage.getItem('admin_upi_id');
+            
+            const qrImgElement = document.getElementById('admin-qr-img'); 
+            const qrPlaceholder = document.getElementById('admin-qr-placeholder');
+            const upiText = document.getElementById('admin-upi-text');
+
+            if (savedQr && qrImgElement) {
+                qrImgElement.src = savedQr;
+                qrImgElement.classList.remove('hidden');
+                if(qrPlaceholder) qrPlaceholder.classList.add('hidden');
+            } else {
+                if(qrImgElement) qrImgElement.classList.add('hidden');
+                if(qrPlaceholder) qrPlaceholder.classList.remove('hidden');
+            }
+
+            if (savedUpi && upiText) {
+                upiText.innerText = `UPI ID: ${savedUpi}`;
             }
         }
 
@@ -821,6 +848,10 @@
                 alert('Please enter a valid coin amount.');
                 return;
             }
+
+            // Load Admin Dynamic QR & UPI ID from localStorage using loadUserQrCode logic
+            loadUserQrCode();
+
             document.getElementById('payment-section').classList.remove('hidden');
         }
 
@@ -833,14 +864,24 @@
                 return;
             }
 
-            addTransaction(`Manual Deposit Request: ${amount} Coins`, 'Pending (Verification)');
-            alert('Deposit request submitted successfully! Pending admin approval.');
-            
-            // Reset fields
-            document.getElementById('deposit-amount').value = '';
-            document.getElementById('payment-screenshot').value = '';
-            document.getElementById('payment-section').classList.add('hidden');
-            loadDashboard();
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            // Convert image to Base64 so Admin panel can render it directly
+            reader.onload = function(e) {
+                const base64Image = e.target.result;
+
+                addTransactionWithScreenshot(`Manual Deposit Request: ${amount} Coins`, 'Pending (Verification)', base64Image);
+                alert('Deposit request submitted successfully! Pending admin approval.');
+                
+                // Reset fields
+                document.getElementById('deposit-amount').value = '';
+                document.getElementById('payment-screenshot').value = '';
+                document.getElementById('payment-section').classList.add('hidden');
+                loadDashboard();
+            };
+
+            reader.readAsDataURL(file);
         }
 
         // --- WITHDRAW SYSTEM ---
@@ -878,9 +919,24 @@
         // --- UTILS & STORAGE ---
         function addTransaction(details, status) {
             const tx = {
+                id: Date.now(),
                 mobile: currentUser.mobile,
                 details,
                 status,
+                screenshot: null,
+                date: new Date().toLocaleDateString()
+            };
+            transactions.push(tx);
+            localStorage.setItem('mlm_transactions', JSON.stringify(transactions));
+        }
+
+        function addTransactionWithScreenshot(details, status, screenshot) {
+            const tx = {
+                id: Date.now(),
+                mobile: currentUser.mobile,
+                details,
+                status,
+                screenshot: screenshot,
                 date: new Date().toLocaleDateString()
             };
             transactions.push(tx);
@@ -889,9 +945,11 @@
 
         function addCustomTransaction(userMobile, details, status) {
             const tx = {
+                id: Date.now(),
                 mobile: userMobile,
                 details,
                 status,
+                screenshot: null,
                 date: new Date().toLocaleDateString()
             };
             transactions.push(tx);
