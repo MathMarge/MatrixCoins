@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MatrixCoins Web Application</title>
+    <title>MatrixCoins - Admin Panel</title>
     <style>
         :root {
             --primary: #4f46e5;
@@ -33,7 +33,7 @@
         }
 
         .container {
-            max-width: 480px;
+            max-width: 600px;
             margin: 0 auto;
             padding: 16px;
         }
@@ -71,29 +71,6 @@
             border-radius: 8px;
             font-size: 15px;
             outline: none;
-            transition: border-color 0.2s;
-        }
-
-        input:focus, select:focus {
-            border-color: var(--primary);
-        }
-
-        .password-container {
-            position: relative;
-        }
-
-        .toggle-password {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--text-light);
-            font-size: 13px;
-            cursor: pointer;
-            width: auto;
-            padding: 0;
         }
 
         button {
@@ -113,23 +90,14 @@
             background-color: var(--primary-hover);
         }
 
-        .secondary-btn {
-            background-color: #e5e7eb;
-            color: var(--text);
-            margin-top: 10px;
-        }
-        .secondary-btn:hover {
-            background-color: #d1d5db;
-        }
-
         .hidden {
             display: none !important;
         }
 
-        /* Dashboard Styles */
+        /* Metrics & Stats Grid */
         .metrics-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, 1fr);
             gap: 12px;
             margin-bottom: 16px;
         }
@@ -143,276 +111,253 @@
         }
 
         .metric-value {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
             color: var(--primary);
             margin-top: 4px;
         }
 
+        /* Tables & Lists */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid var(--border);
+            padding: 8px;
+            text-align: left;
+        }
+
+        .data-table th {
+            background-color: #f9fafb;
+        }
+
         .badge {
             display: inline-block;
-            padding: 4px 10px;
+            padding: 3px 8px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
         }
         .badge-red { background: #fee2e2; color: var(--danger); }
         .badge-green { background: #d1fae5; color: var(--success); }
+        .badge-yellow { background: #fef3c7; color: #92400e; }
 
-        .package-card {
-            border: 1px solid var(--border);
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 10px;
+        .action-btn {
+            padding: 4px 8px;
+            font-size: 11px;
+            width: auto;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+        .btn-success { background-color: var(--success); }
+        .btn-danger { background-color: var(--danger); }
+        .btn-warning { background-color: var(--warning); color: #fff; }
+
+        /* Modal for Screenshot & Tree Preview */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .history-item {
-            font-size: 13px;
-            padding: 8px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .alert-box {
-            background: #fef3c7;
-            border: 1px solid #f59e0b;
-            color: #92400e;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 13px;
-            margin-bottom: 12px;
-            text-align: center;
-        }
-
-        .qr-container {
-            text-align: center;
-            margin: 15px 0;
-        }
-
-        .qr-placeholder {
-            width: 150px;
-            height: 150px;
-            background: #e5e7eb;
-            margin: 0 auto 10px auto;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: 12px;
-            color: var(--text-light);
-            border-radius: 8px;
-            border: 2px dashed #9ca3af;
-            object-fit: contain;
-        }
-
-        .team-level-section {
-            margin-bottom: 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        .team-level-header {
-            background: #f3f4f6;
-            padding: 8px 12px;
-            font-size: 13px;
-            font-weight: bold;
-            color: var(--text);
-            display: flex;
-            justify-content: space-between;
-        }
-        .team-member-item {
-            padding: 8px 12px;
-            font-size: 12px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            background: #fff;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            max-width: 90%;
+            max-height: 90%;
+            text-align: center;
+            overflow-y: auto;
+        }
+        .modal-content img {
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 4px;
+            margin-bottom: 12px;
+        }
+        .tree-level-box {
+            background: #f9fafb;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 8px;
+            text-align: left;
+            font-size: 12px;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- AUTHENTICATION SECTION -->
-        <div id="auth-section">
-            <!-- Signup Card -->
-            <div id="signup-card" class="card">
-                <h2>Create Account</h2>
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" id="signup-name" placeholder="Enter your name">
-                </div>
-                <div class="form-group">
-                    <label>Mobile Number</label>
-                    <input type="tel" id="signup-mobile" maxlength="10" placeholder="10-digit mobile number">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <div class="password-container">
-                        <input type="password" id="signup-password" placeholder="Create password">
-                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('signup-password', this)">Show</button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Refer Code (Optional)</label>
-                    <input type="text" id="signup-refer" placeholder="Enter refer code">
-                </div>
-                <button onclick="handleSignup()">Register</button>
-                <button class="secondary-btn" onclick="toggleAuth(false)">Already have an account? Login</button>
+        <!-- ADMIN LOGIN SECTION -->
+        <div id="admin-auth-card" class="card">
+            <h2>🔐 Admin Portal Login</h2>
+            <div class="form-group">
+                <label>Admin Username</label>
+                <input type="text" id="admin-username" placeholder="Enter admin username">
             </div>
-
-            <!-- Login Card -->
-            <div id="login-card" class="card hidden">
-                <h2>Login</h2>
-                <div class="form-group">
-                    <label>Mobile Number</label>
-                    <input type="tel" id="login-mobile" maxlength="10" placeholder="Enter 10-digit mobile number">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <div class="password-container">
-                        <input type="password" id="login-password" placeholder="Enter password">
-                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('login-password', this)">Show</button>
-                    </div>
-                </div>
-                <button onclick="handleLogin()">Login</button>
-                <button class="secondary-btn" onclick="toggleAuth(true)">Don't have an account? Register</button>
+            <div class="form-group">
+                <label>Admin Security PIN / Password</label>
+                <input type="password" id="admin-pin" placeholder="Enter admin PIN (Default: 7860)">
             </div>
+            <button onclick="handleAdminLogin()">Login to Dashboard</button>
         </div>
 
-        <!-- DASHBOARD SECTION -->
-        <div id="dashboard-section" class="hidden">
-            <!-- User Overview Card -->
+        <!-- ADMIN DASHBOARD SECTION -->
+        <div id="admin-dashboard" class="hidden">
+            <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin:0;">👑 Admin Control Panel</h3>
+                <button onclick="adminLogout()" style="width: auto; padding: 6px 12px; font-size: 12px; background: var(--danger);">Logout</button>
+            </div>
+
+            <!-- Platform Analytics -->
             <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <h3 id="user-greeting" style="margin:0;">Welcome</h3>
-                    <button onclick="handleLogout()" style="width: auto; padding: 6px 12px; font-size: 12px; background: var(--danger);">Logout</button>
-                </div>
+                <h3>Platform Overview</h3>
                 <div class="metrics-grid">
                     <div class="metric-box">
-                        <div style="font-size:12px; color:var(--text-light);">Wallet Balance</div>
-                        <div class="metric-value" id="wallet-balance">0 Coins</div>
+                        <div style="font-size:12px; color:var(--text-light);">Total Users</div>
+                        <div class="metric-value" id="admin-total-users">0</div>
                     </div>
                     <div class="metric-box">
-                        <div style="font-size:12px; color:var(--text-light);">ID Status</div>
-                        <div style="margin-top:4px;" id="id-status-badge"><span class="badge badge-red">Inactive</span></div>
-                    </div>
-                </div>
-                <div class="form-group" style="margin-bottom:0;">
-                    <label>Referral Link</label>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="text" id="ref-link" readonly style="background: #f9fafb;">
-                        <button onclick="copyRefLink()" style="width: 100px;">Copy</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Upline Details Card -->
-            <div class="card">
-                <h3>My Upline Details</h3>
-                <div id="upline-details-container">
-                    <p style="text-align: center; color: var(--text-light); font-size: 13px;">No upline (Direct/Admin registered).</p>
-                </div>
-            </div>
-
-            <!-- Team Stats Card -->
-            <div class="card">
-                <h3>Team Statistics</h3>
-                <div class="metrics-grid">
-                    <div class="metric-box">
-                        <div style="font-size:12px; color:var(--text-light);">Level 1 (Direct)</div>
-                        <div class="metric-value" id="stat-l1">0</div>
+                        <div style="font-size:12px; color:var(--text-light);">Active IDs</div>
+                        <div class="metric-value" id="admin-active-users">0</div>
                     </div>
                     <div class="metric-box">
-                        <div style="font-size:12px; color:var(--text-light);">Total Team Size</div>
-                        <div class="metric-value" id="stat-team">0</div>
+                        <div style="font-size:12px; color:var(--text-light);">Pending Deposits</div>
+                        <div class="metric-value" id="admin-pending-deposits" style="color: var(--warning);">0</div>
+                    </div>
+                    <div class="metric-box">
+                        <div style="font-size:12px; color:var(--text-light);">Pending Withdrawals</div>
+                        <div class="metric-value" id="admin-pending-withdrawals" style="color: var(--danger);">0</div>
                     </div>
                 </div>
-                <div class="metric-box" style="margin-top: 12px;">
-                    <div style="font-size:12px; color:var(--text-light);">Total Referral Earnings</div>
-                    <div class="metric-value" id="stat-earnings">0 Coins</div>
-                </div>
             </div>
 
-            <!-- 4-Level Downline Team Tree View Card -->
+            <!-- QR Code Management Settings -->
             <div class="card">
-                <h3>4-Level Team Tree View</h3>
-                <div id="downline-tree-container">
-                    <p style="text-align: center; color: var(--text-light); font-size: 13px;">No downline team members yet.</p>
-                </div>
-            </div>
-
-            <!-- Wallet Activation & Packages Card -->
-            <div class="card">
-                <h3>Activation Packages</h3>
-                <div id="packages-container">
-                    <!-- Dynamic Packages -->
-                </div>
-            </div>
-
-            <!-- Add Coins Card (Manual Deposit) -->
-            <div class="card">
-                <h3>Add Coins (Manual Deposit)</h3>
+                <h3>⚙️ QR Code Management</h3>
                 <div class="form-group">
-                    <label>Enter Coin Amount</label>
-                    <input type="number" id="deposit-amount" placeholder="e.g. 500">
+                    <label>Update UPI QR Code Image Link / URL</label>
+                    <input type="text" id="admin-qr-input" placeholder="Enter image URL or path">
                 </div>
-                <button onclick="proceedToPayment()" style="background: var(--success);">Proceed to Pay</button>
-
-                <!-- Payment & QR Section (Hidden initially) -->
-                <div id="payment-section" class="hidden" style="margin-top: 15px; border-top: 1px solid var(--border); paddingTop: 15px;">
-                    <div class="alert-box">Scan QR code, pay via any UPI app, and upload screenshot below.</div>
-                    <div class="qr-container">
-                        <!-- Dynamic QR Render Update -->
-                        <img id="admin-qr-img" src="" alt="Admin UPI QR Code" class="qr-placeholder hidden">
-                        <div id="admin-qr-placeholder" class="qr-placeholder">Admin UPI QR Code<br>(Dynamic / Admin Managed)</div>
-                        <p style="font-size: 13px; font-weight: bold; color: var(--primary);" id="admin-upi-text">UPI ID: admin@upi</p>
+                <div class="form-group">
+                    <label>Update UPI ID</label>
+                    <input type="text" id="admin-upi-input" placeholder="e.g. admin@upi">
+                </div>
+                <button onclick="saveAdminQrCode()">Save QR & UPI</button>
+                
+                <!-- QR Code Live Preview Container -->
+                <div id="qr-preview-container" class="hidden" style="margin-top: 14px; text-align: center;">
+                    <label style="font-size: 12px; color: var(--text-light); margin-bottom: 4px;">Current Active QR Preview:</label>
+                    <div>
+                        <img id="admin-qr-preview-img" src="" alt="Active QR Code" style="max-width: 150px; max-height: 150px; border: 1px solid var(--border); border-radius: 6px; padding: 4px; background: #fff;">
                     </div>
-                    <div class="form-group">
-                        <label>Upload Payment Screenshot</label>
-                        <input type="file" id="payment-screenshot" accept="image/*">
-                    </div>
-                    <button onclick="submitDepositRequest()">Submit for Verification</button>
                 </div>
             </div>
 
-            <!-- Withdraw System Card -->
+            <!-- Pending Deposits Management -->
             <div class="card">
-                <h3>Withdraw Payout</h3>
-                <div class="form-group">
-                    <label>Enter Coins to Withdraw</label>
-                    <input type="number" id="withdraw-coins" placeholder="Enter coins">
+                <h3>📥 Deposit Requests (Manual Approval)</h3>
+                <div style="max-height: 250px; overflow-y: auto;">
+                    <table class="data-table" id="deposits-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Details</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamic Deposit Requests -->
+                        </tbody>
+                    </table>
                 </div>
-                <div class="form-group">
-                    <label>Select Payment Method</label>
-                    <select id="withdraw-method">
-                        <option value="PhonePe">PhonePe</option>
-                        <option value="Paytm">Paytm</option>
-                        <option value="Google Pay">Google Pay</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Enter UPI ID or Mobile Number</label>
-                    <input type="text" id="withdraw-destination" placeholder="e.g. 9876543210@ybl or Number">
-                </div>
-                <button onclick="submitWithdrawal()" style="background: var(--warning); color: #000;">Request Withdrawal</button>
             </div>
 
-            <!-- Transaction History Card -->
+            <!-- Pending Withdrawals Management -->
             <div class="card">
-                <h3>Transaction History</h3>
-                <div id="history-container" style="max-height: 200px; overflow-y: auto;">
-                    <p style="text-align: center; color: var(--text-light); font-size: 13px;">No transactions yet.</p>
+                <h3>📤 Withdrawal Requests</h3>
+                <div style="max-height: 250px; overflow-y: auto;">
+                    <table class="data-table" id="withdrawals-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Details</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamic Withdrawals -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Request History Section (Approved / Rejected) -->
+            <div class="card">
+                <h3>📜 Request History & Approval Logs</h3>
+                <div style="max-height: 250px; overflow-y: auto;">
+                    <table class="data-table" id="history-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Details & Status</th>
+                                <th>Proof / Date / Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamic History List -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- User Database Management -->
+            <div class="card">
+                <h3>👥 Registered Users Management</h3>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <input type="text" id="user-search-input" placeholder="Search by name, mobile, refer code, or date..." oninput="loadAdminData()">
+                </div>
+                <div style="max-height: 350px; overflow-y: auto;">
+                    <table class="data-table" id="users-table">
+                        <thead>
+                            <tr>
+                                <th>User Info</th>
+                                <th>Wallet, Pkg & Pass</th>
+                                <th>Actions & Management</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamic Users List -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDK Setup & Matrix Isolated Nodes Integration -->
+    <!-- Screenshot / Tree Modal Container -->
+    <div id="screenshot-modal" class="modal hidden">
+        <div class="modal-content">
+            <h4 id="modal-title">Payment Screenshot</h4>
+            <div style="margin: 10px 0;" id="modal-body-content">
+                <img id="modal-img" src="" alt="Payment Proof">
+            </div>
+            <button onclick="closeModal()">Close Preview</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Setup & Real-time Sync -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, get, child, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -430,49 +375,38 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Expose Firebase functions globally for app logic
-        window.matrixDB = { db, ref, set, get, child, onValue };
-        window.initMatrixFirebaseSync();
+        window.matrixAdminDB = { db, ref, set, get, child, onValue };
+        window.initAdminFirebaseSync();
     </script>
 
     <script>
-        // --- DATABASE & STATE MANAGEMENT (Matrix Isolated Nodes + LocalStorage Sync) ---
         let users = JSON.parse(localStorage.getItem('mlm_users')) || [];
-        let currentUser = JSON.parse(localStorage.getItem('mlm_current_user')) || null;
         let transactions = JSON.parse(localStorage.getItem('mlm_transactions')) || [];
 
-        const packages = [50, 100, 200, 500, 1000];
+        // Realtime sync from Firebase for Admin Panel
+        window.initAdminFirebaseSync = function() {
+            const { db, ref, onValue } = window.matrixAdminDB;
 
-        // Firebase Sync Initialization for Matrix
-        window.initMatrixFirebaseSync = function() {
-            const { db, ref, onValue } = window.matrixDB;
-
-            // Sync matrix_users separately to avoid mixing with Math Merge
             onValue(ref(db, 'matrix_users'), (snapshot) => {
                 if (snapshot.exists()) {
                     users = snapshot.val() || [];
                     localStorage.setItem('mlm_users', JSON.stringify(users));
-                    if (currentUser) {
-                        const updatedSelf = users.find(u => u.mobile === currentUser.mobile);
-                        if (updatedSelf) {
-                            currentUser = updatedSelf;
-                            localStorage.setItem('mlm_current_user', JSON.stringify(currentUser));
-                            loadDashboard();
-                        }
+                    if (localStorage.getItem('matrix_admin_logged') === 'true') {
+                        loadAdminData();
                     }
                 }
             });
 
-            // Sync matrix_transactions separately
             onValue(ref(db, 'matrix_transactions'), (snapshot) => {
                 if (snapshot.exists()) {
                     transactions = snapshot.val() || [];
                     localStorage.setItem('mlm_transactions', JSON.stringify(transactions));
-                    if (currentUser) renderHistory();
+                    if (localStorage.getItem('matrix_admin_logged') === 'true') {
+                        loadAdminData();
+                    }
                 }
             });
 
-            // Sync admin configuration nodes
             onValue(ref(db, 'matrix_admin_qr'), (snapshot) => {
                 if (snapshot.exists()) {
                     localStorage.setItem('matrix_admin_qr', snapshot.val());
@@ -486,535 +420,418 @@
             });
         };
 
-        function syncToFirebase() {
-            if (window.matrixDB) {
-                const { db, ref, set } = window.matrixDB;
+        function syncAdminToFirebase() {
+            if (window.matrixAdminDB) {
+                const { db, ref, set } = window.matrixAdminDB;
                 set(ref(db, 'matrix_users'), users);
                 set(ref(db, 'matrix_transactions'), transactions);
             }
         }
 
-        // --- PASSWORD SHOW/HIDE UTILITY ---
-        function togglePasswordVisibility(inputId, btn) {
-            const inputField = document.getElementById(inputId);
-            if (inputField.type === "password") {
-                inputField.type = "text";
-                btn.innerText = "Hide";
-            } else {
-                inputField.type = "password";
-                btn.innerText = "Show";
-            }
-        }
-
-        // --- USER PANEL QR CODE LOADER FUNCTION ---
-        function loadUserQrCode() {
-            const savedQr = localStorage.getItem('matrix_admin_qr') || localStorage.getItem('admin_qr_url');
-            const savedUpi = localStorage.getItem('matrix_admin_upi') || localStorage.getItem('admin_upi_id');
-            
-            const qrImgElement = document.getElementById('admin-qr-img'); 
-            const qrPlaceholder = document.getElementById('admin-qr-placeholder');
-            const upiText = document.getElementById('admin-upi-text');
-
-            if (savedQr && qrImgElement) {
-                qrImgElement.src = savedQr;
-                qrImgElement.classList.remove('hidden');
-                if(qrPlaceholder) qrPlaceholder.classList.add('hidden');
-            } else {
-                if(qrImgElement) qrImgElement.classList.add('hidden');
-                if(qrPlaceholder) qrPlaceholder.classList.remove('hidden');
-            }
-
-            if (savedUpi && upiText) {
-                upiText.innerText = `UPI ID: ${savedUpi}`;
-            }
-        }
-
-        // --- AUTO-FILL REFERRAL CODE FROM URL IF ANY ---
+        // Check Admin Session on Load
         window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const refParam = urlParams.get('ref');
-            if (refParam) {
-                const referInput = document.getElementById('signup-refer');
-                if (referInput) referInput.value = refParam;
-            }
-
-            // Check Persistent Login Session
-            if (currentUser) {
-                document.getElementById('auth-section').classList.add('hidden');
-                document.getElementById('dashboard-section').classList.remove('hidden');
-                loadDashboard();
+            if (localStorage.getItem('matrix_admin_logged') === 'true') {
+                document.getElementById('admin-auth-card').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                loadAdminData();
             }
         };
 
-        // --- AUTH LOGIC ---
-        function toggleAuth(isSignup) {
-            if (isSignup) {
-                document.getElementById('signup-card').classList.remove('hidden');
-                document.getElementById('login-card').classList.add('hidden');
+        function handleAdminLogin() {
+            const username = document.getElementById('admin-username').value.trim();
+            const pin = document.getElementById('admin-pin').value.trim();
+            if (username === "admin" && pin === "7860") {
+                localStorage.setItem('matrix_admin_logged', 'true');
+                document.getElementById('admin-auth-card').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                loadAdminData();
             } else {
-                document.getElementById('signup-card').classList.add('hidden');
-                document.getElementById('login-card').classList.remove('hidden');
+                alert('Invalid Admin Username or PIN! (Hint: username: admin, PIN: 7860)');
             }
         }
 
-        function handleSignup() {
-            const name = document.getElementById('signup-name').value.trim();
-            const mobile = document.getElementById('signup-mobile').value.trim();
-            const password = document.getElementById('signup-password').value.trim();
-            const rawReferCode = document.getElementById('signup-refer').value.trim();
-
-            if (!name || !mobile || !password) {
-                alert('Please fill all required fields.');
-                return;
-            }
-            if (mobile.length !== 10 || isNaN(mobile)) {
-                alert('Mobile number must be exactly 10 digits.');
-                return;
-            }
-            if (users.some(u => u.mobile === mobile)) {
-                alert('Mobile number already registered.');
-                return;
-            }
-
-            // Case-Insensitive Referral Code Validation & Resolution
-            let verifiedReferCode = null;
-            if (rawReferCode !== "") {
-                const matchedUpline = users.find(u => u.referCode.toLowerCase() === rawReferCode.toLowerCase());
-                if (!matchedUpline) {
-                    alert('Invalid Refer Code! Please check or leave blank.');
-                    return;
-                }
-                verifiedReferCode = matchedUpline.referCode;
-            }
-
-            // Auto-Generated Sequential Referral Code
-            const prefix = name.substring(0, 3).toLowerCase();
-            let seqNumber = 100 + users.length;
-            let userReferCode = prefix + seqNumber;
-            while(users.some(u => u.referCode.toLowerCase() === userReferCode.toLowerCase())) {
-                seqNumber++;
-                userReferCode = prefix + seqNumber;
-            }
-
-            const registrationDate = new Date().toLocaleString();
-
-            const newUser = {
-                name,
-                mobile,
-                password,
-                referCode: userReferCode,
-                referredBy: verifiedReferCode,
-                wallet: 0,
-                activePackage: 0,
-                earnings: 0,
-                team: { l1: 0, total: 0 },
-                regDate: registrationDate
-            };
-
-            if (verifiedReferCode) {
-                let upline = users.find(u => u.referCode === verifiedReferCode);
-                if (upline) {
-                    upline.team.l1 += 1;
-                    upline.team.total += 1;
-                    let currentUplineCode = upline.referredBy;
-                    while(currentUplineCode) {
-                        let higherUpline = users.find(u => u.referCode === currentUplineCode);
-                        if(higherUpline) {
-                            higherUpline.team.total += 1;
-                            currentUplineCode = higherUpline.referredBy;
-                        } else {
-                            break;
-                        }
-                    }
-                }
-            }
-
-            users.push(newUser);
-            localStorage.setItem('mlm_users', JSON.stringify(users));
-            syncToFirebase();
-            alert('Registration Successful! Your refer code is ' + userReferCode + '. Please login.');
-            toggleAuth(false);
+        function adminLogout() {
+            localStorage.removeItem('matrix_admin_logged');
+            document.getElementById('admin-auth-card').classList.remove('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('admin-username').value = '';
+            document.getElementById('admin-pin').value = '';
         }
 
-        function handleLogin() {
-            const mobile = document.getElementById('login-mobile').value.trim();
-            const password = document.getElementById('login-password').value.trim();
-
-            if (mobile.length !== 10) {
-                alert('Enter a valid 10-digit mobile number.');
-                return;
-            }
-
-            const user = users.find(u => u.mobile === mobile && u.password === password);
-            if (!user) {
-                alert('Invalid mobile number or password.');
-                return;
-            }
-
-            currentUser = user;
-            localStorage.setItem('mlm_current_user', JSON.stringify(currentUser));
-            document.getElementById('auth-section').classList.add('hidden');
-            document.getElementById('dashboard-section').classList.remove('hidden');
-            loadDashboard();
-        }
-
-        function handleLogout() {
-            currentUser = null;
-            localStorage.removeItem('mlm_current_user');
-            document.getElementById('auth-section').classList.remove('hidden');
-            document.getElementById('dashboard-section').classList.add('hidden');
-            toggleAuth(true);
-        }
-
-        function loadDashboard() {
-            currentUser = users.find(u => u.mobile === currentUser.mobile);
-
-            document.getElementById('user-greeting').innerText = `Welcome, ${currentUser.name}`;
-            document.getElementById('wallet-balance').innerText = `${currentUser.wallet} Coins`;
+        function saveAdminQrCode() {
+            const qrUrl = document.getElementById('admin-qr-input').value.trim();
+            const upiId = document.getElementById('admin-upi-input').value.trim();
             
-            const badgeContainer = document.getElementById('id-status-badge');
-            if (currentUser.activePackage === 0) {
-                badgeContainer.innerHTML = `<span class="badge badge-red">Inactive</span>`;
+            if (qrUrl) {
+                localStorage.setItem('matrix_admin_qr', qrUrl);
+                if (window.matrixAdminDB) {
+                    const { db, ref, set } = window.matrixAdminDB;
+                    set(ref(db, 'matrix_admin_qr'), qrUrl);
+                }
+            }
+
+            if (upiId) {
+                localStorage.setItem('matrix_admin_upi', upiId);
+                if (window.matrixAdminDB) {
+                    const { db, ref, set } = window.matrixAdminDB;
+                    set(ref(db, 'matrix_admin_upi'), upiId);
+                }
+            }
+
+            if (qrUrl || upiId) {
+                alert('QR Code and UPI ID updated successfully!');
+                document.getElementById('admin-qr-input').value = '';
+                document.getElementById('admin-upi-input').value = '';
+                loadAdminData();
             } else {
-                badgeContainer.innerHTML = `<span class="badge badge-green">Active (${currentUser.activePackage} Pkg)</span>`;
+                alert('Please enter valid details to save.');
             }
-
-            document.getElementById('ref-link').value = `https://mathmarge.github.io/MatrixCoins/?ref=${currentUser.referCode}`;
-
-            document.getElementById('stat-l1').innerText = currentUser.team.l1;
-            document.getElementById('stat-team').innerText = currentUser.team.total;
-            document.getElementById('stat-earnings').innerText = `${currentUser.earnings} Coins`;
-
-            renderUplineDetails();
-            renderDownlineTree();
-            renderPackages();
-            renderHistory();
         }
 
-        function renderUplineDetails() {
-            const container = document.getElementById('upline-details-container');
-            if (!currentUser.referredBy) {
-                container.innerHTML = `<p style="text-align: center; color: var(--text-light); font-size: 13px;">No upline (Direct / Root User).</p>`;
-                return;
-            }
+        function loadAdminData() {
+            users = JSON.parse(localStorage.getItem('mlm_users')) || [];
+            transactions = JSON.parse(localStorage.getItem('mlm_transactions')) || [];
 
-            const uplineUser = users.find(u => u.referCode === currentUser.referredBy);
-            if (!uplineUser) {
-                container.innerHTML = `<p style="text-align: center; color: var(--text-light); font-size: 13px;">Upline details not found.</p>`;
-                return;
-            }
+            document.getElementById('admin-total-users').innerText = users.length;
+            document.getElementById('admin-active-users').innerText = users.filter(u => u.activePackage > 0).length;
 
-            const statusBadge = uplineUser.activePackage > 0 
-                ? `<span class="badge badge-green">Active (${uplineUser.activePackage} Coins)</span>` 
-                : `<span class="badge badge-red">Inactive</span>`;
+            const pendingDeps = transactions.filter(t => (t.details.includes('Manual Deposit Request') || t.details.includes('Deposit')) && t.status.includes('Pending'));
+            const pendingWds = transactions.filter(t => t.details.includes('Withdrawal Request') && t.status === 'Pending');
 
-            container.innerHTML = `
-                <div style="font-size: 13px; background: #f9fafb; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                        <strong>Name:</strong> <span>${uplineUser.name}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                        <strong>Mobile:</strong> <span>${uplineUser.mobile}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px; align-items: center;">
-                        <strong>ID Status:</strong> <span>${statusBadge}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <strong>Joined On:</strong> <span style="color: var(--text-light);">${uplineUser.regDate || 'N/A'}</span>
-                    </div>
-                </div>
-            `;
-        }
+            document.getElementById('admin-pending-deposits').innerText = pendingDeps.length;
+            document.getElementById('admin-pending-withdrawals').innerText = pendingWds.length;
 
-        function renderDownlineTree() {
-            const container = document.getElementById('downline-tree-container');
+            const savedQr = localStorage.getItem('matrix_admin_qr');
+            const previewContainer = document.getElementById('qr-preview-container');
+            const previewImg = document.getElementById('admin-qr-preview-img');
             
-            const level1Users = users.filter(u => u.referredBy === currentUser.referCode);
-            if (level1Users.length === 0) {
-                container.innerHTML = `<p style="text-align: center; color: var(--text-light); font-size: 13px;">No downline team members yet.</p>`;
-                return;
+            if(savedQr) {
+                document.getElementById('admin-qr-input').placeholder = "Current QR set (Enter new to update)";
+                previewImg.src = savedQr;
+                previewContainer.classList.remove('hidden');
+            } else {
+                previewContainer.classList.add('hidden');
             }
 
-            let htmlContent = '';
-            htmlContent += renderLevelBox(1, level1Users);
+            // Render Deposit Requests Table
+            const depTableBody = document.querySelector('#deposits-table tbody');
+            depTableBody.innerHTML = '';
+            if (pendingDeps.length === 0) {
+                depTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-light);">No pending deposits.</td></tr>`;
+            } else {
+                pendingDeps.forEach((tx) => {
+                    let userObj = users.find(u => u.mobile === tx.mobile);
+                    let userName = userObj ? userObj.name : 'Unknown';
+                    let tr = document.createElement('tr');
+                    
+                    let proofImg = tx.screenshot || tx.image || '';
+                    let screenshotBtn = proofImg ? `<br><button class="action-btn" style="background:#2563eb; margin-top:4px;" onclick="viewScreenshot('${encodeURIComponent(proofImg)}')">📸 View Screenshot</button>` : `<br><small style="color:var(--text-light);">No screenshot attached</small>`;
 
-            let level2Users = [];
-            level1Users.forEach(l1 => {
-                const sub = users.filter(u => u.referredBy === l1.referCode);
-                level2Users = level2Users.concat(sub);
+                    tr.innerHTML = `
+                        <td><strong>${userName}</strong><br><small>${tx.mobile}</small></td>
+                        <td>${tx.details}<br><small style="color:var(--text-light);">${tx.date}</small>${screenshotBtn}</td>
+                        <td>
+                            <button class="action-btn btn-success" onclick="approveDeposit('${tx.mobile}', '${tx.details}')">Approve</button>
+                            <button class="action-btn btn-danger" onclick="rejectTransaction('${tx.mobile}', '${tx.details}')">Reject</button>
+                        </td>
+                    `;
+                    depTableBody.appendChild(tr);
+                });
+            }
+
+            // Render Withdrawal Requests Table
+            const wdTableBody = document.querySelector('#withdrawals-table tbody');
+            wdTableBody.innerHTML = '';
+            if (pendingWds.length === 0) {
+                wdTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-light);">No pending withdrawals.</td></tr>`;
+            } else {
+                pendingWds.forEach((tx) => {
+                    let userObj = users.find(u => u.mobile === tx.mobile);
+                    let userName = userObj ? userObj.name : 'Unknown';
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${userName}</strong><br><small>${tx.mobile}</small></td>
+                        <td>${tx.details}<br><small style="color:var(--text-light);">${tx.date}</small></td>
+                        <td>
+                            <button class="action-btn btn-success" onclick="approveWithdrawal('${tx.mobile}', '${tx.details}')">Mark Successful</button>
+                            <button class="action-btn btn-danger" onclick="rejectWithdrawal('${tx.mobile}', '${tx.details}')">Reject</button>
+                        </td>
+                    `;
+                    wdTableBody.appendChild(tr);
+                });
+            }
+
+            // Render History Table
+            const historyTableBody = document.querySelector('#history-table tbody');
+            historyTableBody.innerHTML = '';
+            const historyTxs = transactions.filter(t => !t.status.includes('Pending'));
+            
+            if (historyTxs.length === 0) {
+                historyTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-light);">No request history yet.</td></tr>`;
+            } else {
+                historyTxs.forEach((tx) => {
+                    let userObj = users.find(u => u.mobile === tx.mobile);
+                    let userName = userObj ? userObj.name : 'Unknown';
+                    let tr = document.createElement('tr');
+                    
+                    let statusBadgeClass = tx.status.includes('Successful') || tx.status.includes('Completed') ? 'badge-green' : 'badge-red';
+                    let proofImg = tx.screenshot || tx.image || '';
+                    let hScreenshotBtn = proofImg ? `<br><button class="action-btn" style="background:#2563eb; margin-top:4px;" onclick="viewScreenshot('${encodeURIComponent(proofImg)}')">📸 View Screenshot</button>` : '';
+
+                    tr.innerHTML = `
+                        <td><strong>${userName}</strong><br><small>${tx.mobile}</small></td>
+                        <td>
+                            ${tx.details}<br>
+                            <span class="badge ${statusBadgeClass}">${tx.status}</span>
+                            ${hScreenshotBtn}
+                        </td>
+                        <td>
+                            <small style="color:var(--text-light);">${tx.date}</small><br>
+                            <button class="action-btn btn-danger" style="margin-top:6px;" onclick="deleteHistoryLog('${tx.mobile}', '${tx.details}', '${tx.date}')">🗑️ Delete</button>
+                        </td>
+                    `;
+                    historyTableBody.appendChild(tr);
+                });
+            }
+
+            // Render All Users Table (with search filter & 4-Level Downline Tree View Button)
+            const usersTableBody = document.querySelector('#users-table tbody');
+            usersTableBody.innerHTML = '';
+            
+            let searchQuery = document.getElementById('user-search-input') ? document.getElementById('user-search-input').value.toLowerCase().trim() : '';
+            
+            let filteredUsers = users.filter(user => {
+                if (!searchQuery) return true;
+                let nameMatch = user.name && user.name.toLowerCase().includes(searchQuery);
+                let mobileMatch = user.mobile && user.mobile.toLowerCase().includes(searchQuery);
+                let referCodeMatch = user.referCode && user.referCode.toLowerCase().includes(searchQuery);
+                let regDateStr = (user.regDate ? user.regDate : (user.date ? user.date : '')).toLowerCase();
+                let dateMatch = regDateStr.includes(searchQuery);
+                
+                return nameMatch || mobileMatch || referCodeMatch || dateMatch;
             });
-            if (level2Users.length > 0) {
-                htmlContent += renderLevelBox(2, level2Users);
-            }
 
-            let level3Users = [];
-            level2Users.forEach(l2 => {
-                const sub = users.filter(u => u.referredBy === l2.referCode);
-                level3Users = level3Users.concat(sub);
-            });
-            if (level3Users.length > 0) {
-                htmlContent += renderLevelBox(3, level3Users);
+            if (filteredUsers.length === 0) {
+                usersTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-light);">No users found.</td></tr>`;
+            } else {
+                let sortedUsers = [...filteredUsers].reverse();
+                sortedUsers.forEach(user => {
+                    let regDateStr = user.regDate ? user.regDate : (user.date ? user.date : 'N/A');
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>
+                            <strong>${user.name}</strong><br>
+                            <small>Mobile: ${user.mobile}</small><br>
+                            <small>Refer Code: ${user.referCode || 'N/A'}</small><br>
+                            <small style="color:var(--text-light);">Reg: ${regDateStr}</small><br>
+                            <small>Sponsor: ${user.sponsorMobile || user.referredBy || 'None (Root)'}</small>
+                        </td>
+                        <td>
+                            Wallet: <strong>${user.wallet}</strong> Coins<br>
+                            Pkg: ${user.activePackage === 0 ? 'Inactive' : user.activePackage}<br>
+                            Pass: <code style="background:#f1f5f9; padding:1px 4px; border-radius:4px;">${user.password || 'N/A'}</code>
+                        </td>
+                        <td>
+                            <span class="badge ${user.activePackage > 0 ? 'badge-green' : 'badge-red'}">${user.activePackage > 0 ? 'Active' : 'Inactive'}</span><br>
+                            <button class="action-btn" style="background:#8b5cf6; margin-top:4px;" onclick="viewUserTree('${user.mobile}')">🌳 View Tree (4L)</button><br>
+                            <button class="action-btn btn-success" onclick="adminAdjustCoins('${user.mobile}', 'add')">+ Add</button>
+                            <button class="action-btn btn-warning" onclick="adminAdjustCoins('${user.mobile}', 'sub')">- Sub</button><br>
+                            <button class="action-btn" style="background:#2563eb;" onclick="resetUserPassword('${user.mobile}')">Reset Pass</button>
+                            <button class="action-btn btn-danger" onclick="deleteUserAccount('${user.mobile}')">Delete</button>
+                        </td>
+                    `;
+                    usersTableBody.appendChild(tr);
+                });
             }
-
-            let level4Users = [];
-            level3Users.forEach(l3 => {
-                const sub = users.filter(u => u.referredBy === l3.referCode);
-                level4Users = level4Users.concat(sub);
-            });
-            if (level4Users.length > 0) {
-                htmlContent += renderLevelBox(4, level4Users);
-            }
-
-            container.innerHTML = htmlContent;
         }
 
-        function renderLevelBox(levelNum, memberList) {
-            let listHtml = '';
-            memberList.forEach(m => {
-                const statusBadge = m.activePackage > 0 
-                    ? `<span class="badge badge-green">Active (${m.activePackage})</span>` 
-                    : `<span class="badge badge-red">Inactive</span>`;
-                
-                listHtml += `
-                    <div class="team-member-item">
-                        <div>
-                            <strong>${m.name}</strong> (${m.mobile})
-                            <div style="font-size: 10px; color: var(--text-light);">Joined: ${m.regDate || 'N/A'}</div>
-                        </div>
-                        <div>${statusBadge}</div>
-                    </div>
-                `;
-            });
+        function viewScreenshot(encodedImg) {
+            let imgUrl = decodeURIComponent(encodedImg);
+            document.getElementById('modal-title').innerText = "Payment Screenshot";
+            document.getElementById('modal-body-content').innerHTML = `<img id="modal-img" src="${imgUrl}" alt="Payment Proof">`;
+            document.getElementById('screenshot-modal').classList.remove('hidden');
+        }
 
-            return `
-                <div class="team-level-section">
-                    <div class="team-level-header">
-                        <span>Level ${levelNum} Members</span>
-                        <span>Total: ${memberList.length}</span>
-                    </div>
-                    ${listHtml}
+        // 4-Level Downline Tree View Function for Admin
+        function viewUserTree(mobile) {
+            let targetUser = users.find(u => u.mobile === mobile);
+            if (!targetUser) return;
+
+            // Match by referral code or mobile number to ensure proper downline linkage
+            let targetCodes = [targetUser.mobile, targetUser.referCode].filter(Boolean);
+
+            let l1 = users.filter(u => targetCodes.includes(u.referredBy));
+            let l1Codes = l1.map(u => u.referCode).filter(Boolean);
+
+            let l2 = users.filter(u => l1Codes.includes(u.referredBy));
+            let l2Codes = l2.map(u => u.referCode).filter(Boolean);
+
+            let l3 = users.filter(u => l2Codes.includes(u.referredBy));
+            let l3Codes = l3.map(u => u.referCode).filter(Boolean);
+
+            let l4 = users.filter(u => l3Codes.includes(u.referredBy));
+
+            let renderLevelHtml = (title, levelUsers) => {
+                if (levelUsers.length === 0) {
+                    return `<div class="tree-level-box"><strong>${title}:</strong> <span style="color:var(--text-light);">None</span></div>`;
+                }
+                let listHtml = levelUsers.map(u => `<div style="margin-left: 10px; margin-top: 4px; border-left: 2px solid var(--primary); padding-left: 6px;">🔹 <strong>${u.name}</strong> (${u.mobile}) - <span class="badge ${u.activePackage > 0 ? 'badge-green' : 'badge-red'}">${u.activePackage > 0 ? 'Active' : 'Inactive'}</span></div>`).join('');
+                return `<div class="tree-level-box"><strong>${title} (${levelUsers.length}):</strong><div style="margin-top:4px;">${listHtml}</div></div>`;
+            };
+
+            let treeHtml = `
+                <div style="text-align:left; margin-bottom: 12px; padding: 10px; background: #eef2ff; border-radius: 6px;">
+                    <strong>Selected User:</strong> ${targetUser.name} (${targetUser.mobile})<br>
+                    <strong>Total Team Downline:</strong> ${l1.length + l2.length + l3.length + l4.length} members
                 </div>
+                ${renderLevelHtml('Level 1 (Direct Referrals)', l1)}
+                ${renderLevelHtml('Level 2', l2)}
+                ${renderLevelHtml('Level 3', l3)}
+                ${renderLevelHtml('Level 4', l4)}
             `;
+
+            document.getElementById('modal-title').innerText = `4-Level Downline Tree (${targetUser.name})`;
+            document.getElementById('modal-body-content').innerHTML = treeHtml;
+            document.getElementById('screenshot-modal').classList.remove('hidden');
         }
 
-        function copyRefLink() {
-            const copyText = document.getElementById('ref-link');
-            copyText.select();
-            document.execCommand('copy');
-            alert('Referral link copied to clipboard!');
+        function closeModal() {
+            document.getElementById('screenshot-modal').classList.add('hidden');
+            document.getElementById('modal-body-content').innerHTML = `<img id="modal-img" src="" alt="Payment Proof">`;
         }
 
-        function renderPackages() {
-            const container = document.getElementById('packages-container');
-            container.innerHTML = '';
+        function approveDeposit(mobile, details) {
+            let match = details.match(/(\d+)\sCoins/);
+            if (!match) {
+                alert('Error parsing deposit amount.');
+                return;
+            }
+            let amount = parseFloat(match[1]);
 
-            packages.forEach(pkg => {
-                if (currentUser.activePackage >= pkg) {
-                    return;
+            let user = users.find(u => u.mobile === mobile);
+            if (user) {
+                user.wallet += amount;
+            }
+
+            let tx = transactions.find(t => t.mobile === mobile && t.details === details && t.status.includes('Pending'));
+            if (tx) {
+                tx.status = 'Successful (Approved)';
+            }
+
+            syncAdminToFirebase();
+            alert(`Successfully added ${amount} coins to user ${mobile}!`);
+            loadAdminData();
+        }
+
+        function rejectTransaction(mobile, details) {
+            let tx = transactions.find(t => t.mobile === mobile && t.details === details);
+            if (tx) {
+                tx.status = 'Rejected';
+            }
+            syncAdminToFirebase();
+            alert('Deposit request rejected.');
+            loadAdminData();
+        }
+
+        function approveWithdrawal(mobile, details) {
+            let tx = transactions.find(t => t.mobile === mobile && t.details === details && t.status === 'Pending');
+            if (tx) {
+                tx.status = 'Successful (Paid)';
+            }
+            syncAdminToFirebase();
+            alert('Withdrawal marked as Successful/Paid.');
+            loadAdminData();
+        }
+
+        function rejectWithdrawal(mobile, details) {
+            let match = details.match(/Withdrawal Request:\s([\d.]+)\sCoins/);
+            if (match) {
+                let amount = parseFloat(match[1]);
+                let user = users.find(u => u.mobile === mobile);
+                if (user) {
+                    user.wallet += amount; 
                 }
+            }
 
-                const div = document.createElement('div');
-                div.className = 'package-card';
-                div.innerHTML = `
-                    <div>
-                        <strong>Package: ${pkg} Coins</strong>
-                        <div style="font-size:11px; color:var(--text-light);">Upgrade to unlock levels</div>
-                    </div>
-                    <button onclick="activatePackage(${pkg})" style="width: auto; padding: 6px 14px; font-size: 13px;">Activate</button>
-                `;
-                container.appendChild(div);
+            let tx = transactions.find(t => t.mobile === mobile && t.details === details);
+            if (tx) {
+                tx.status = 'Rejected & Refunded';
+            }
+
+            syncAdminToFirebase();
+            alert('Withdrawal rejected and coins refunded.');
+            loadAdminData();
+        }
+
+        function deleteHistoryLog(mobile, details, date) {
+            let txIndex = transactions.findIndex(t => t.mobile === mobile && t.details === details && t.date === date);
+            if (txIndex === -1) return;
+
+            if (confirm(`Are you sure you want to delete this history log record?`)) {
+                transactions.splice(txIndex, 1);
+                syncAdminToFirebase();
+                loadAdminData();
+            }
+        }
+
+        function adminAdjustCoins(mobile, actionType) {
+            let user = users.find(u => u.mobile === mobile);
+            if (!user) return;
+
+            let promptMsg = actionType === 'add' ? `Enter number of coins to ADD for ${user.name}:` : `Enter number of coins to DEDUCT from ${user.name}:`;
+            let inputVal = prompt(promptMsg);
+            if (inputVal === null || inputVal.trim() === '') return;
+
+            let amount = parseFloat(inputVal);
+            if (isNaN(amount) || amount <= 0) return;
+
+            if (actionType === 'sub' && user.wallet < amount) {
+                alert(`Error: User only has ${user.wallet} coins.`);
+                return;
+            }
+
+            if (actionType === 'add') {
+                user.wallet += amount;
+            } else {
+                user.wallet -= amount;
+            }
+
+            let nowStr = new Date().toLocaleString();
+            let logDetails = actionType === 'add' ? `Admin Added: +${amount} Coins` : `Admin Deducted: -${amount} Coins`;
+            
+            transactions.unshift({
+                mobile: mobile,
+                details: logDetails,
+                status: 'Completed (Admin Action)',
+                date: nowStr
             });
 
-            if (container.innerHTML === '') {
-                container.innerHTML = `<p style="text-align:center; font-size:13px; color:var(--success);">All available packages activated!</p>`;
+            syncAdminToFirebase();
+            loadAdminData();
+        }
+
+        function deleteUserAccount(mobile) {
+            let userIndex = users.findIndex(u => u.mobile === mobile);
+            if (userIndex === -1) return;
+
+            if (confirm(`Are you sure you want to permanently delete user account (${mobile})?`)) {
+                users.splice(userIndex, 1);
+                syncAdminToFirebase();
+                loadAdminData();
             }
         }
 
-        function activatePackage(pkgAmount) {
-            if (currentUser.wallet < pkgAmount) {
-                alert('Insufficient wallet balance! Please use "Add Coins" to add funds.');
-                return;
-            }
-
-            if (confirm(`Confirm activation of package worth ${pkgAmount} coins?`)) {
-                currentUser.wallet -= pkgAmount;
-                currentUser.activePackage = pkgAmount;
-
-                distributeCommission(currentUser, pkgAmount);
-
-                updateUserData();
-                addTransaction(`Activated Package: ${pkgAmount} Coins`, 'Successful');
-                alert('Package activated successfully!');
-                loadDashboard();
-            }
-        }
-
-        function distributeCommission(downlineUser, packageAmount) {
-            const percentages = [0.40, 0.20, 0.10, 0.05];
-            let currentUplineCode = downlineUser.referredBy;
-
-            for (let level = 0; level < 4; level++) {
-                if (!currentUplineCode) break;
-
-                let uplineUser = users.find(u => u.referCode === currentUplineCode);
-                if (!uplineUser) break;
-
-                if (uplineUser.activePackage > 0) {
-                    let matchingBase = Math.min(uplineUser.activePackage, packageAmount);
-                    let commission = matchingBase * percentages[level];
-
-                    uplineUser.wallet += commission;
-                    uplineUser.earnings += commission;
-
-                    addCustomTransaction(uplineUser.mobile, `Level ${level + 1} Commission: +${commission} Coins`, 'Successful');
+        function resetUserPassword(mobile) {
+            let newPass = prompt("Enter new password for user " + mobile + ":");
+            if (newPass) {
+                let user = users.find(u => u.mobile === mobile);
+                if (user) {
+                    user.password = newPass.trim();
+                    syncAdminToFirebase();
+                    alert('Password updated successfully!');
+                    loadAdminData();
                 }
-
-                currentUplineCode = uplineUser.referredBy;
             }
-        }
-
-        function proceedToPayment() {
-            const amount = document.getElementById('deposit-amount').value;
-            if (!amount || amount <= 0) {
-                alert('Please enter a valid coin amount.');
-                return;
-            }
-
-            loadUserQrCode();
-            document.getElementById('payment-section').classList.remove('hidden');
-        }
-
-        function submitDepositRequest() {
-            const amount = document.getElementById('deposit-amount').value;
-            const fileInput = document.getElementById('payment-screenshot');
-
-            if (fileInput.files.length === 0) {
-                alert('Please upload payment screenshot.');
-                return;
-            }
-
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-
-            reader.onload = function(e) {
-                const base64Image = e.target.result;
-
-                addTransactionWithScreenshot(`Manual Deposit Request: ${amount} Coins`, 'Pending (Verification)', base64Image);
-                alert('Deposit request submitted successfully! Pending admin approval.');
-                
-                document.getElementById('deposit-amount').value = '';
-                document.getElementById('payment-screenshot').value = '';
-                document.getElementById('payment-section').classList.add('hidden');
-                loadDashboard();
-            };
-
-            reader.readAsDataURL(file);
-        }
-
-        function submitWithdrawal() {
-            const coins = parseFloat(document.getElementById('withdraw-coins').value);
-            const method = document.getElementById('withdraw-method').value;
-            const destination = document.getElementById('withdraw-destination').value.trim();
-
-            if (!coins || coins <= 0) {
-                alert('Please enter a valid coin amount to withdraw.');
-                return;
-            }
-            if (!destination) {
-                alert('Please enter your UPI ID or Mobile Number.');
-                return;
-            }
-            if (currentUser.wallet < coins) {
-                alert('Insufficient wallet balance for withdrawal.');
-                return;
-            }
-
-            currentUser.wallet -= coins;
-            updateUserData();
-
-            addTransaction(`Withdrawal Request: ${coins} Coins via ${method} (${destination})`, 'Pending');
-            alert('Withdrawal request submitted successfully!');
-
-            document.getElementById('withdraw-coins').value = '';
-            document.getElementById('withdraw-destination').value = '';
-            loadDashboard();
-        }
-
-        function addTransaction(details, status) {
-            const tx = {
-                id: Date.now(),
-                mobile: currentUser.mobile,
-                details,
-                status,
-                screenshot: null,
-                date: new Date().toLocaleDateString()
-            };
-            transactions.push(tx);
-            localStorage.setItem('mlm_transactions', JSON.stringify(transactions));
-            syncToFirebase();
-        }
-
-        function addTransactionWithScreenshot(details, status, screenshot) {
-            const tx = {
-                id: Date.now(),
-                mobile: currentUser.mobile,
-                details,
-                status,
-                screenshot: screenshot,
-                date: new Date().toLocaleDateString()
-            };
-            transactions.push(tx);
-            localStorage.setItem('mlm_transactions', JSON.stringify(transactions));
-            syncToFirebase();
-        }
-
-        function addCustomTransaction(userMobile, details, status) {
-            const tx = {
-                id: Date.now(),
-                mobile: userMobile,
-                details,
-                status,
-                screenshot: null,
-                date: new Date().toLocaleDateString()
-            };
-            transactions.push(tx);
-            localStorage.setItem('mlm_transactions', JSON.stringify(transactions));
-            syncToFirebase();
-        }
-
-        function updateUserData() {
-            const index = users.findIndex(u => u.mobile === currentUser.mobile);
-            if (index !== -1) {
-                users[index] = currentUser;
-                localStorage.setItem('mlm_users', JSON.stringify(users));
-                localStorage.setItem('mlm_current_user', JSON.stringify(currentUser));
-                syncToFirebase();
-            }
-        }
-
-        function renderHistory() {
-            const container = document.getElementById('history-container');
-            if(!currentUser) return;
-            const userTxs = transactions.filter(t => t.mobile === currentUser.mobile);
-
-            if (userTxs.length === 0) {
-                container.innerHTML = `<p style="text-align: center; color: var(--text-light); font-size: 13px;">No transactions yet.</p>`;
-                return;
-            }
-
-            container.innerHTML = '';
-            userTxs.slice().reverse().forEach(tx => {
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                div.innerHTML = `
-                    <div>
-                        <div>${tx.details}</div>
-                        <div style="font-size:10px; color:var(--text-light);">${tx.date}</div>
-                    </div>
-                    <div><span class="badge ${tx.status.includes('Successful') ? 'badge-green' : 'badge-red'}">${tx.status}</span></div>
-                `;
-                container.appendChild(div);
-            });
         }
     </script>
 </body>
